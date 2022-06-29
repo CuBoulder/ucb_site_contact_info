@@ -1,0 +1,6 @@
+{
+    "name": "cu-boulder/ucb_site_contact_info",
+    "description": "Stores and provides site contact information as a block in the site footer.",
+    "license": "MIT",
+    "type": "drupal-custom-module"
+}
