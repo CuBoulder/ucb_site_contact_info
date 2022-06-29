@@ -1,0 +1,10 @@
+name: Site Contact Info
+description: 'Stores and provides site contact information as a block in the site footer.'
+configure: ucb_site_contact_info.site_info_form
+# hidden: true
+core_version_requirement: ^8.8 || ^9
+type: module
+dependencies:
+  - block
+version: '1.1'
+package: CU Boulder

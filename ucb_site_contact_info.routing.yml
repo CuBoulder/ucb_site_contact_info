@@ -1,0 +1,9 @@
+ucb_site_contact_info.site_info_form:
+  path: '/admin/config/system/ucb-site-contact-info'
+  defaults:
+    _form: '\Drupal\ucb_site_contact_info\Form\SiteInfoForm'
+    _title: Site contact info
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: true
