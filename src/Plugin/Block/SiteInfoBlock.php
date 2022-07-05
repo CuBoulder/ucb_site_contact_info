@@ -21,7 +21,7 @@ class SiteInfoBlock extends BlockBase {
     $config = \Drupal::config('ucb_site_contact_info.configuration');
     return [
       '#data' => [
-        'seperate_departments' => $config->get('seperate_departments'),
+        'separate_departments' => $config->get('separate_departments'),
         'department' => $config->get('department'),
         'address_visible' => $config->get('address_visible'),
         'address' => $config->get('address'),

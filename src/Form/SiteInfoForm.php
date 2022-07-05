@@ -35,10 +35,10 @@ class SiteInfoForm extends ConfigFormBase {
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
         $config = $this->config('ucb_site_contact_info.configuration');
-        $form['seperate_departments'] = [
+        $form['separate_departments'] = [
             '#type' => 'checkbox',
-            '#title' => $this->t('Organize site contact info as seperate departments'),
-            '#default_value' => $config->get('seperate_departments') ?? '0'
+            '#title' => $this->t('Organize site contact info as separate departments'),
+            '#default_value' => $config->get('separate_departments') ?? '0'
         ];
         $departmentStoredValues = $config->get('department');
         $addressStoredValues = $config->get('address');
@@ -92,13 +92,13 @@ class SiteInfoForm extends ConfigFormBase {
         if($isDepartment) {
             $sectionForm['#states'] = [
                 'visible' => [
-                    ':input[name="seperate_departments"]' => [ 'checked' => true ]
+                    ':input[name="separate_departments"]' => [ 'checked' => true ]
                 ]
             ];     
         } else {
             $sectionForm[$machineName . '_' . $index . '_visible']['#states'] = [
                 'visible' => [
-                    [ ':input[name="seperate_departments"]' => [ 'checked' => false ] ],
+                    [ ':input[name="separate_departments"]' => [ 'checked' => false ] ],
                     [ ':input[name="department_' . $index . '_visible"]' => [ 'checked' => true ] ]
                 ]
             ];
@@ -114,7 +114,7 @@ class SiteInfoForm extends ConfigFormBase {
     public function submitForm(array &$form, FormStateInterface $form_state) {
         $config = $this->config('ucb_site_contact_info.configuration');
         $formValues = $form_state->getValues();
-        $config->set('seperate_departments', $formValues['seperate_departments'])->save();
+        $config->set('separate_departments', $formValues['separate_departments'])->save();
         $this->_saveFormSection($formValues, $config, 'department', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
         $this->_saveFormSection($formValues, $config, 'address', ['visible', 'label', 'value', 'map_link'], self::NUMBER_OF_GROUPS);
         $this->_saveFormSection($formValues, $config, 'email', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
