@@ -21,12 +21,14 @@ class SiteInfoBlock extends BlockBase {
     $config = \Drupal::config('ucb_site_info.settings');
     return [
       '#data' => [
-        'address_1' => $config->get('address_1') ?? '',
-        'address_2' => $config->get('address_2') ?? '',
-        'zip_code' => $config->get('zip_code') ?? '',
-        'email' => $config->get('email') ?? '',
-        'fax' => $config->get('fax') ?? '',
-        'phone' => $config->get('phone') ?? ''
+        'seperate_departments' => $config->get('seperate_departments'),
+        'department' => $config->get('department'),
+        'address_visible' => $config->get('address_visible'),
+        'address' => $config->get('address'),
+        'email_visible' => $config->get('email_visible'),
+        'email' => $config->get('email'),
+        'phone_visible' => $config->get('phone_visible'),
+        'phone' => $config->get('phone')
       ]
     ];
   }

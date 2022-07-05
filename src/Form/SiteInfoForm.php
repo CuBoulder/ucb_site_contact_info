@@ -8,9 +8,11 @@ use Drupal\Core\Url;
 
 class SiteInfoForm extends ConfigFormBase {
 
-/**
-   * @return string
-   */
+    const NUMBER_OF_GROUPS = 4;
+
+    /**
+     * @return string
+     */
     public function getFormId() {
         return 'ucb_site_info_form';
     }
@@ -33,44 +35,76 @@ class SiteInfoForm extends ConfigFormBase {
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
         $config = $this->config('ucb_site_info.settings');
-        $form['address_1'] = [
-            '#type' => 'textfield',
-            '#size' => 255,
-            '#title' => $this->t('Address Line 1'),
-            '#default_value' => $config->get('address_1') ?? ''
+        $form['seperate_departments'] = [
+            '#type' => 'checkbox',
+            '#title' => $this->t('Organize site contact info as seperate departments'),
+            '#default_value' => $config->get('seperate_departments') ?? '0'
         ];
-        $form['address_2'] = [
-            '#type' => 'textfield',
-            '#size' => 255,
-            '#title' => $this->t('Address Line 2'),
-            '#default_value' => $config->get('address_2') ?? ''
-        ];
-        $form['zip_code'] = [
-            '#type' => 'number',
-            '#min' => 11111,
-            '#max' => 99999,
-            '#title' => $this->t('Building Zip Code'),
-            '#default_value' => $config->get('zip_code') ?? ''
-        ];
-        $form['email'] = [
-            '#type' => 'email',
-            '#size' => 255,
-            '#title' => $this->t('Email'),
-            '#default_value' => $config->get('email') ?? ''
-        ];
-        $form['fax'] = [
-            '#type' => 'tel',
-            '#size' => 255,
-            '#title' => $this->t('Fax'),
-            '#default_value' => $config->get('fax') ?? ''
-        ];
-        $form['phone'] = [
-            '#type' => 'tel',
-            '#size' => 255,
-            '#title' => $this->t('Phone'),
-            '#default_value' => $config->get('phone') ?? ''
-        ];
+        $departmentStoredValues = $config->get('department');
+        $addressStoredValues = $config->get('address');
+        $emailStoredValues = $config->get('email');
+        $phoneStoredValues = $config->get('phone');
+        for($index = 0; $index < self::NUMBER_OF_GROUPS; $index++) {
+            $innerForm = [
+                '#type' => 'details',
+                '#title' => $this->t('Group ' . $index + 1 . ($index == 0 ? '' : ' (Optional)')),
+                '#open' => true
+            ];   
+            $innerForm = $this->_buildFormSection('Department ' . $index + 1, 'department', 'department', $index, 'Label', 'Link (optional)', 'textfield', 255, $departmentStoredValues, $innerForm);
+            $innerForm = $this->_buildFormSection('Address ' . $index + 1, 'address', 'address', $index, 'Label (optional)', 'Value (supports multiline)', 'textarea', 255, $addressStoredValues, $innerForm);
+            $innerForm['address_' . $index]['address' . '_' . $index . '_map_link'] = [
+                '#type' => 'textfield',
+                // '#size' => 32,
+                '#title' => $this->t('Map link (optional)'),
+                '#default_value' => $addressStoredValues[$index]['map_link'] ?? ''    
+            ];
+            $innerForm = $this->_buildFormSection('Email ' . $index + 1, 'email', 'email', $index, 'Label (optional)', 'Value', 'email', 20, $emailStoredValues, $innerForm);
+            $innerForm = $this->_buildFormSection('Phone ' . $index + 1, 'phone', 'phone', $index, 'Label (optional)', 'Value', 'tel', 20, $phoneStoredValues, $innerForm);
+            $form[$index] = $innerForm;
+        }
         return parent::buildForm($form, $form_state);
+    }
+
+    private function _buildFormSection($verboseName, $verboseNameLower, $machineName, $index, $labelFieldLabel, $valueFieldLabel, $valueFieldType, $valueFieldSize, $storedValues, array &$innerForm) {
+        $isDepartment = $machineName == 'department';
+        $sectionForm = [
+            '#type' => 'details',
+            '#title' => $this->t($verboseName),
+            '#open' => $isDepartment
+        ];
+        $sectionForm[$machineName . '_' . $index . '_visible'] = [
+            '#type' => 'checkbox',
+            '#title' => $this->t('Display this ' . $verboseNameLower . ' in the site footer'),
+            '#default_value' => $storedValues[$index]['visible'] ?? ($isDepartment && $index == 0 ? '1' : '0')
+        ];
+        $sectionForm[$machineName . '_' . $index . '_label'] = [
+            '#type' => 'textfield',
+            // '#size' => 32,
+            '#title' => $this->t($labelFieldLabel),
+            '#default_value' => $storedValues[$index]['label'] ?? ''
+        ];
+        $sectionForm[$machineName . '_' . $index . '_value'] = [
+            '#type' => $valueFieldType,
+            // '#size' => $valueFieldSize,
+            '#title' => $this->t($valueFieldLabel),
+            '#default_value' => $storedValues[$index]['value'] ?? ''
+        ];
+        if($isDepartment) {
+            $sectionForm['#states'] = [
+                'visible' => [
+                    ':input[name="seperate_departments"]' => [ 'checked' => true ]
+                ]
+            ];     
+        } else {
+            $sectionForm[$machineName . '_' . $index . '_visible']['#states'] = [
+                'visible' => [
+                    [ ':input[name="seperate_departments"]' => [ 'checked' => false ] ],
+                    [ ':input[name="department_' . $index . '_visible"]' => [ 'checked' => true ] ]
+                ]
+            ];
+        }
+        $innerForm[$machineName . '_' . $index] = $sectionForm;
+        return $innerForm;
     }
 
     /**
@@ -79,13 +113,32 @@ class SiteInfoForm extends ConfigFormBase {
      */
     public function submitForm(array &$form, FormStateInterface $form_state) {
         $config = $this->config('ucb_site_info.settings');
-        $config->set('address_1', $form_state->getValue('address_1'))->save();
-        $config->set('address_2', $form_state->getValue('address_2'))->save();
-        $config->set('zip_code', $form_state->getValue('zip_code'))->save();
-        $config->set('email', $form_state->getValue('email'))->save();
-        $config->set('fax', $form_state->getValue('fax'))->save();
-        $config->set('phone', $form_state->getValue('phone'))->save();
+        $formValues = $form_state->getValues();
+        $config->set('seperate_departments', $formValues['seperate_departments'])->save();
+        $this->_saveFormSection($formValues, $config, 'department', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
+        $this->_saveFormSection($formValues, $config, 'address', ['visible', 'label', 'value', 'map_link'], self::NUMBER_OF_GROUPS);
+        $this->_saveFormSection($formValues, $config, 'email', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
+        $this->_saveFormSection($formValues, $config, 'phone', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
         \Drupal::service('cache.render')->invalidateAll();
+    }
+
+    private static function _saveFormSection($formValues, $config, $sectionName, $fieldNames, $count) {
+        $values = [];
+        $visibleForCategory = '0';
+        for($index = 0; $index < $count; $index++) {
+            $visible = $formValues[$sectionName . '_' . $index . '_visible'];
+            if($visible == '1') {
+                // Make visible the address, email, or phone section if at least one address, email, or phone is marked as visible
+                $visibleForCategory = '1';
+            }
+            $fieldNameValueDict = [];
+            foreach($fieldNames as $fieldName) {
+                $fieldNameValueDict[$fieldName] = $formValues[$sectionName . '_' . $index . '_' . $fieldName];
+            }
+            $values[] = $fieldNameValueDict;
+        }
+        $config->set($sectionName . '_visible', $visibleForCategory)->save();
+        $config->set($sectionName, $values)->save();
     }
 }
 ?>
