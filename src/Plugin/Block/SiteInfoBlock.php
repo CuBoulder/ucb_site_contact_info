@@ -18,7 +18,7 @@ class SiteInfoBlock extends BlockBase {
    * {@inheritdoc}
    */
   public function build() {
-    $config = \Drupal::config('ucb_site_info.settings');
+    $config = \Drupal::config('ucb_site_contact_info.configuration');
     return [
       '#data' => [
         'seperate_departments' => $config->get('seperate_departments'),

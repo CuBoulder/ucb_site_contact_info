@@ -25,7 +25,7 @@ class SiteInfoForm extends ConfigFormBase {
      *   conjunction with the trait's config() method.
      */
     protected function getEditableConfigNames() {
-        return [ 'ucb_site_info.settings' ];
+        return [ 'ucb_site_contact_info.configuration' ];
     }
 
     /**
@@ -34,7 +34,7 @@ class SiteInfoForm extends ConfigFormBase {
      * @return array
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
-        $config = $this->config('ucb_site_info.settings');
+        $config = $this->config('ucb_site_contact_info.configuration');
         $form['seperate_departments'] = [
             '#type' => 'checkbox',
             '#title' => $this->t('Organize site contact info as seperate departments'),
@@ -112,7 +112,7 @@ class SiteInfoForm extends ConfigFormBase {
      * @param FormStateInterface $form_state
      */
     public function submitForm(array &$form, FormStateInterface $form_state) {
-        $config = $this->config('ucb_site_info.settings');
+        $config = $this->config('ucb_site_contact_info.configuration');
         $formValues = $form_state->getValues();
         $config->set('seperate_departments', $formValues['seperate_departments'])->save();
         $this->_saveFormSection($formValues, $config, 'department', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);

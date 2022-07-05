@@ -1,0 +1,9 @@
+<?php
+/**
+ * Removes the site contact info configuration on uninstall. 
+ * Implements hook_uninstall().
+ */
+function ucb_site_contact_info_uninstall() {
+    Drupal::configFactory()->getEditable('ucb_site_contact_info.configuration')->delete();
+}
+?>
