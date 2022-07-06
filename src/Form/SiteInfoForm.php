@@ -8,7 +8,9 @@ use Drupal\Core\Url;
 
 class SiteInfoForm extends ConfigFormBase {
 
-    const NUMBER_OF_GROUPS = 4;
+    const NUMBER_OF_ADDRESSES = 2;
+    const NUMBER_OF_EMAILS = 3;
+    const NUMBER_OF_PHONE_NUMBERS = 3;
 
     /**
      * @return string
@@ -35,76 +37,76 @@ class SiteInfoForm extends ConfigFormBase {
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
         $config = $this->config('ucb_site_contact_info.configuration');
-        $form['separate_departments'] = [
-            '#type' => 'checkbox',
-            '#title' => $this->t('Organize site contact info as separate departments'),
-            '#default_value' => $config->get('separate_departments') ?? '0'
-        ];
-        $departmentStoredValues = $config->get('department');
         $addressStoredValues = $config->get('address');
         $emailStoredValues = $config->get('email');
         $phoneStoredValues = $config->get('phone');
-        for($index = 0; $index < self::NUMBER_OF_GROUPS; $index++) {
-            $innerForm = [
-                '#type' => 'details',
-                '#title' => $this->t('Group ' . $index + 1 . ($index == 0 ? '' : ' (Optional)')),
-                '#open' => true
-            ];   
-            $innerForm = $this->_buildFormSection('Department ' . $index + 1, 'department', 'department', $index, 'Label', 'Link (optional)', 'textfield', 255, $departmentStoredValues, $innerForm);
-            $innerForm = $this->_buildFormSection('Address ' . $index + 1, 'address', 'address', $index, 'Label (optional)', 'Value (supports multiline)', 'textarea', 255, $addressStoredValues, $innerForm);
-            $innerForm['address_' . $index]['address' . '_' . $index . '_map_link'] = [
-                '#type' => 'textfield',
-                // '#size' => 32,
-                '#title' => $this->t('Map link (optional)'),
-                '#default_value' => $addressStoredValues[$index]['map_link'] ?? ''    
-            ];
-            $innerForm = $this->_buildFormSection('Email ' . $index + 1, 'email', 'email', $index, 'Label (optional)', 'Value', 'email', 20, $emailStoredValues, $innerForm);
-            $innerForm = $this->_buildFormSection('Phone ' . $index + 1, 'phone', 'phone', $index, 'Label (optional)', 'Value', 'tel', 20, $phoneStoredValues, $innerForm);
-            $form[$index] = $innerForm;
-        }
+        $form = $this->_buildFormSection(self::NUMBER_OF_ADDRESSES, 'Address', 'address', 'address', 'Label (optional)', 'Value (supports multiline)', 'textarea', 255, $addressStoredValues, $form);
+        $form = $this->_buildFormSection(self::NUMBER_OF_EMAILS, 'Email address', 'email address', 'email', 'Label (optional)', 'Value', 'email', 20, $emailStoredValues, $form);
+        $form = $this->_buildFormSection(self::NUMBER_OF_PHONE_NUMBERS, 'Phone number', 'phone number', 'phone', 'Label (optional)', 'Value', 'tel', 20, $phoneStoredValues, $form);
         return parent::buildForm($form, $form_state);
     }
 
-    private function _buildFormSection($verboseName, $verboseNameLower, $machineName, $index, $labelFieldLabel, $valueFieldLabel, $valueFieldType, $valueFieldSize, $storedValues, array &$innerForm) {
-        $isDepartment = $machineName == 'department';
+    private function _buildFormSection($itemCount, $verboseName, $verboseNameLower, $machineName, $labelFieldLabel, $valueFieldLabel, $valueFieldType, $valueFieldSize, $storedValues, array &$form) {
+        // Toggle for "Add primary x"
+        $form[$machineName . '_0_visible'] = [
+            '#type' => 'checkbox',
+            '#title' => $this->t('Add primary ' . $verboseNameLower),
+            '#default_value' => $storedValues[0]['visible'] ?? '0'
+        ];
+        // Section "Primary x"
         $sectionForm = [
             '#type' => 'details',
-            '#title' => $this->t($verboseName),
-            '#open' => $isDepartment
-        ];
-        $sectionForm[$machineName . '_' . $index . '_visible'] = [
-            '#type' => 'checkbox',
-            '#title' => $this->t('Display this ' . $verboseNameLower . ' in the site footer'),
-            '#default_value' => $storedValues[$index]['visible'] ?? ($isDepartment && $index == 0 ? '1' : '0')
-        ];
-        $sectionForm[$machineName . '_' . $index . '_label'] = [
+            '#title' => 'Primary ' . $verboseNameLower,
+            '#open' => true,
+            '#states' => [
+                'visible' => [
+                    ':input[name="'. $machineName . '_0_visible"]' => [ 'checked' => true ]
+                ]
+            ]
+        ];   
+        // Fields for primary item
+        $sectionForm = $this->_buildFieldSection(0, $verboseName, $verboseNameLower, $machineName, $labelFieldLabel, $valueFieldLabel, $valueFieldType, $valueFieldSize, $storedValues, $sectionForm);
+        // Add secondary items
+        for($index = 1; $index < $itemCount; $index++) {
+            // Toggle for "Add another x"
+            $sectionForm[$machineName . '_' . $index . '_visible'] = [
+                '#type' => 'checkbox',
+                '#title' => $this->t('Add another ' . $verboseNameLower),
+                '#default_value' => $storedValues[$index]['visible'] ?? '0'
+            ];
+            // Section "[another] x"
+            $subSectionForm = [
+                '#type' => 'details',
+                '#title' => $verboseName,
+                '#open' => true,
+                '#states' => [
+                    'visible' => [
+                        ':input[name="'. $machineName . '_' . $index .'_visible"]' => [ 'checked' => true ]
+                    ]
+                ]
+            ]; 
+            // Fields for secondary item
+            $subSectionForm = $this->_buildFieldSection($index, $verboseName, $verboseNameLower, $machineName, $labelFieldLabel, $valueFieldLabel, $valueFieldType, $valueFieldSize, $storedValues, $subSectionForm);
+            $sectionForm[$machineName . '_' . $index] = $subSectionForm;
+        }
+        $form[$machineName . '_' . $index] = $sectionForm;
+        return $form;
+    }
+
+    private function _buildFieldSection($index, $verboseName, $verboseNameLower, $machineName, $labelFieldLabel, $valueFieldLabel, $valueFieldType, $valueFieldSize, $storedValues, array &$form) {
+        $form[$machineName . '_' . $index . '_label'] = [
             '#type' => 'textfield',
             // '#size' => 32,
             '#title' => $this->t($labelFieldLabel),
             '#default_value' => $storedValues[$index]['label'] ?? ''
         ];
-        $sectionForm[$machineName . '_' . $index . '_value'] = [
+        $form[$machineName . '_' . $index . '_value'] = [
             '#type' => $valueFieldType,
             // '#size' => $valueFieldSize,
             '#title' => $this->t($valueFieldLabel),
             '#default_value' => $storedValues[$index]['value'] ?? ''
         ];
-        if($isDepartment) {
-            $sectionForm['#states'] = [
-                'visible' => [
-                    ':input[name="separate_departments"]' => [ 'checked' => true ]
-                ]
-            ];     
-        } else {
-            $sectionForm[$machineName . '_' . $index . '_visible']['#states'] = [
-                'visible' => [
-                    [ ':input[name="separate_departments"]' => [ 'checked' => false ] ],
-                    [ ':input[name="department_' . $index . '_visible"]' => [ 'checked' => true ] ]
-                ]
-            ];
-        }
-        $innerForm[$machineName . '_' . $index] = $sectionForm;
-        return $innerForm;
+        return $form;
     }
 
     /**
@@ -112,32 +114,30 @@ class SiteInfoForm extends ConfigFormBase {
      * @param FormStateInterface $form_state
      */
     public function submitForm(array &$form, FormStateInterface $form_state) {
-        $config = $this->config('ucb_site_contact_info.configuration');
         $formValues = $form_state->getValues();
-        $config->set('separate_departments', $formValues['separate_departments'])->save();
-        $this->_saveFormSection($formValues, $config, 'department', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
-        $this->_saveFormSection($formValues, $config, 'address', ['visible', 'label', 'value', 'map_link'], self::NUMBER_OF_GROUPS);
-        $this->_saveFormSection($formValues, $config, 'email', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
-        $this->_saveFormSection($formValues, $config, 'phone', ['visible', 'label', 'value'], self::NUMBER_OF_GROUPS);
+        $config = $this->config('ucb_site_contact_info.configuration');
+        $fieldNames = ['visible', 'label', 'value'];
+        $this->_saveFormSection($formValues, $config, 'address', $fieldNames, self::NUMBER_OF_ADDRESSES);
+        $this->_saveFormSection($formValues, $config, 'email', $fieldNames, self::NUMBER_OF_EMAILS);
+        $this->_saveFormSection($formValues, $config, 'phone', $fieldNames, self::NUMBER_OF_PHONE_NUMBERS);
         \Drupal::service('cache.render')->invalidateAll();
     }
 
-    private static function _saveFormSection($formValues, $config, $sectionName, $fieldNames, $count) {
+    private static function _saveFormSection($formValues, $config, $sectionName, $fieldNames, $itemCount) {
+        // Gather all primary / secondary fields from form into one array.
         $values = [];
-        $visibleForCategory = '0';
-        for($index = 0; $index < $count; $index++) {
+        for($index = 0; $index < $itemCount; $index++) {
             $visible = $formValues[$sectionName . '_' . $index . '_visible'];
-            if($visible == '1') {
-                // Make visible the address, email, or phone section if at least one address, email, or phone is marked as visible
-                $visibleForCategory = '1';
-            }
             $fieldNameValueDict = [];
             foreach($fieldNames as $fieldName) {
                 $fieldNameValueDict[$fieldName] = $formValues[$sectionName . '_' . $index . '_' . $fieldName];
             }
             $values[] = $fieldNameValueDict;
         }
-        $config->set($sectionName . '_visible', $visibleForCategory)->save();
+        // Form design necessitates hiding all items if the primary one is not shown.
+        $categoryVisible = $values[0]['visible'];
+        // Set the configuration.
+        $config->set($sectionName . '_visible', $categoryVisible)->save();
         $config->set($sectionName, $values)->save();
     }
 }
