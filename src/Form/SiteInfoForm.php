@@ -2,9 +2,7 @@
 namespace Drupal\ucb_site_contact_info\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
-use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 
 class SiteInfoForm extends ConfigFormBase {
 
@@ -120,25 +118,25 @@ class SiteInfoForm extends ConfigFormBase {
         $this->_saveFormSection($formValues, $config, 'address', $fieldNames, self::NUMBER_OF_ADDRESSES);
         $this->_saveFormSection($formValues, $config, 'email', $fieldNames, self::NUMBER_OF_EMAILS);
         $this->_saveFormSection($formValues, $config, 'phone', $fieldNames, self::NUMBER_OF_PHONE_NUMBERS);
+        // Clear the cache so the new information will display in the site footer right away.
+        // Not the recommended way to do this, but I tried cache tags and that did not work.
         \Drupal::service('cache.render')->invalidateAll();
     }
 
     private static function _saveFormSection($formValues, $config, $sectionName, $fieldNames, $itemCount) {
-        // Gather all primary / secondary fields from form into one array.
+        // Gather all primary / secondary fields from the form into one array.
         $values = [];
         for($index = 0; $index < $itemCount; $index++) {
-            $visible = $formValues[$sectionName . '_' . $index . '_visible'];
             $fieldNameValueDict = [];
             foreach($fieldNames as $fieldName) {
                 $fieldNameValueDict[$fieldName] = $formValues[$sectionName . '_' . $index . '_' . $fieldName];
             }
             $values[] = $fieldNameValueDict;
         }
-        // Form design necessitates hiding all items if the primary one is not shown.
+        // The form design necessitates hiding all items if the primary one is not shown.
         $categoryVisible = $values[0]['visible'];
         // Set the configuration.
         $config->set($sectionName . '_visible', $categoryVisible)->save();
         $config->set($sectionName, $values)->save();
     }
 }
-?>
