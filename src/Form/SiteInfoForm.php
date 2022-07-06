@@ -6,10 +6,6 @@ use Drupal\Core\Form\FormStateInterface;
 
 class SiteInfoForm extends ConfigFormBase {
 
-    const NUMBER_OF_ADDRESSES = 2;
-    const NUMBER_OF_EMAILS = 3;
-    const NUMBER_OF_PHONE_NUMBERS = 3;
-
     /**
      * @return string
      */
@@ -38,9 +34,9 @@ class SiteInfoForm extends ConfigFormBase {
         $addressStoredValues = $config->get('address');
         $emailStoredValues = $config->get('email');
         $phoneStoredValues = $config->get('phone');
-        $form = $this->_buildFormSection(self::NUMBER_OF_ADDRESSES, 'Address', 'address', 'address', 'Label (optional)', 'Value (supports multiline)', 'textarea', 255, $addressStoredValues, $form);
-        $form = $this->_buildFormSection(self::NUMBER_OF_EMAILS, 'Email address', 'email address', 'email', 'Label (optional)', 'Value', 'email', 20, $emailStoredValues, $form);
-        $form = $this->_buildFormSection(self::NUMBER_OF_PHONE_NUMBERS, 'Phone number', 'phone number', 'phone', 'Label (optional)', 'Value', 'tel', 20, $phoneStoredValues, $form);
+        $form = $this->_buildFormSection(sizeof($addressStoredValues), 'Address', 'address', 'address', 'Label (optional)', 'Value (supports multiline)', 'textarea', 255, $addressStoredValues, $form);
+        $form = $this->_buildFormSection(sizeof($emailStoredValues), 'Email address', 'email address', 'email', 'Label (optional)', 'Value', 'email', 20, $emailStoredValues, $form);
+        $form = $this->_buildFormSection(sizeof($phoneStoredValues), 'Phone number', 'phone number', 'phone', 'Label (optional)', 'Value', 'tel', 20, $phoneStoredValues, $form);
         return parent::buildForm($form, $form_state);
     }
 
@@ -115,9 +111,12 @@ class SiteInfoForm extends ConfigFormBase {
         $formValues = $form_state->getValues();
         $config = $this->config('ucb_site_contact_info.configuration');
         $fieldNames = ['visible', 'label', 'value'];
-        $this->_saveFormSection($formValues, $config, 'address', $fieldNames, self::NUMBER_OF_ADDRESSES);
-        $this->_saveFormSection($formValues, $config, 'email', $fieldNames, self::NUMBER_OF_EMAILS);
-        $this->_saveFormSection($formValues, $config, 'phone', $fieldNames, self::NUMBER_OF_PHONE_NUMBERS);
+        $addressStoredValues = $config->get('address');
+        $emailStoredValues = $config->get('email');
+        $phoneStoredValues = $config->get('phone');
+        $this->_saveFormSection($formValues, $config, 'address', $fieldNames, sizeof($addressStoredValues));
+        $this->_saveFormSection($formValues, $config, 'email', $fieldNames, sizeof($emailStoredValues));
+        $this->_saveFormSection($formValues, $config, 'phone', $fieldNames, sizeof($phoneStoredValues));
         // Clear the cache so the new information will display in the site footer right away.
         // Not the recommended way to do this, but I tried cache tags and that did not work.
         \Drupal::service('cache.render')->invalidateAll();
