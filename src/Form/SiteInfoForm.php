@@ -98,7 +98,14 @@ class SiteInfoForm extends ConfigFormBase {
             '#type' => $valueFieldType,
             // '#size' => $valueFieldSize,
             '#title' => $this->t($valueFieldLabel),
-            '#default_value' => $storedValues[$index]['value'] ?? ''
+            '#default_value' => $storedValues[$index]['value'] ?? '',
+            '#states' => [
+                'required' => [
+                    ':input[name="'. $machineName . '_0_visible"]' => [ 'checked' => true ],
+                    'and',
+                    ':input[name="'. $machineName . '_' . $index . '_visible"]' => [ 'checked' => true ]
+                ]
+            ]
         ];
         return $form;
     }
