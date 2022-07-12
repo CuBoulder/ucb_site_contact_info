@@ -1,42 +1,44 @@
 # Default configuration for ucb_site_contact_info (will be overriden by the form).
 
-address_visible: '0'
+icons_visible: true
+
+address_visible: false
 address:
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
 
-email_visible: '0'
+email_visible: false
 email:
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
 
-phone_visible: '0'
+phone_visible: false
 phone:
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
   -
-    visible: '0'
+    visible: false
     label: ''
     value: ''
