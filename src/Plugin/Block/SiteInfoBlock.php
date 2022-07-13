@@ -14,41 +14,42 @@ use Drupal\Core\Session\AccountInterface;
  * )
  */
 class SiteInfoBlock extends BlockBase {
-  /**
-   * {@inheritdoc}
-   */
-  public function build() {
-    $config = \Drupal::config('ucb_site_info.settings');
-    return [
-      '#data' => [
-        'address_1' => $config->get('address_1') ?? '',
-        'address_2' => $config->get('address_2') ?? '',
-        'zip_code' => $config->get('zip_code') ?? '',
-        'email' => $config->get('email') ?? '',
-        'fax' => $config->get('fax') ?? '',
-        'phone' => $config->get('phone') ?? ''
-      ]
-    ];
-  }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function build() {
+		$config = \Drupal::config('ucb_site_contact_info.configuration');
+		return [
+			'#data' => [
+				'icons_visible' => $config->get('icons_visible'),
+				'address_visible' => $config->get('address_visible'),
+				'address' => $config->get('address'),
+				'email_visible' => $config->get('email_visible'),
+				'email' => $config->get('email'),
+				'phone_visible' => $config->get('phone_visible'),
+				'phone' => $config->get('phone')
+			]
+		];
+	}
 
-  /**
-   * {@inheritdoc}
-   */
-  protected function blockAccess(AccountInterface $account) {
-    return AccessResult::allowedIfHasPermission($account, 'access content');
-  }
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function blockAccess(AccountInterface $account) {
+		return AccessResult::allowedIfHasPermission($account, 'access content');
+	}
 
-  /**
-   * {@inheritdoc}
-   */
-  public function blockForm($form, FormStateInterface $form_state) {
-    return parent::blockForm($form, $form_state);
-  }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function blockForm($form, FormStateInterface $form_state) {
+		return parent::blockForm($form, $form_state);
+	}
 
-  /**
-   * {@inheritdoc}
-   */
-  public function blockSubmit($form, FormStateInterface $form_state) {
-    return parent::blockSubmit($form, $form_state);
-  }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function blockSubmit($form, FormStateInterface $form_state) {
+		return parent::blockSubmit($form, $form_state);
+	}
 }
